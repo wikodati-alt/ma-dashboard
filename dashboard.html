@@ -1,0 +1,785 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MA Dashboard — Dati</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:ital,wght@0,300;0,400;0,500;1,300&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;1,9..40,300&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #0e0e0e;
+    --bg2: #161616;
+    --bg3: #1e1e1e;
+    --bg4: #252525;
+    --line: rgba(255,255,255,0.07);
+    --line2: rgba(255,255,255,0.13);
+    --text: #e8e4dc;
+    --text2: #888880;
+    --text3: #555550;
+    --accent: #c8b89a;
+    --accent2: #8a7a6a;
+    --red: #c05a4a;
+    --red-bg: rgba(192,90,74,0.12);
+    --blue: #5a7ab8;
+    --blue-bg: rgba(90,122,184,0.12);
+    --purple: #8a6ab8;
+    --purple-bg: rgba(138,106,184,0.12);
+    --orange: #b87a3a;
+    --orange-bg: rgba(184,122,58,0.12);
+    --green: #5a8a5a;
+    --green-bg: rgba(90,138,90,0.12);
+    --heat0: transparent;
+    --heat1: rgba(90,138,90,0.15);
+    --heat2: rgba(90,138,90,0.32);
+    --heat3: rgba(90,138,90,0.55);
+    --heat4: rgba(90,138,90,0.82);
+    --mono: 'DM Mono', monospace;
+    --sans: 'DM Sans', sans-serif;
+    --radius: 6px;
+    --radius-lg: 10px;
+  }
+
+  html { background: var(--bg); color: var(--text); font-family: var(--sans); font-size: 14px; line-height: 1.5; }
+  body { min-height: 100vh; }
+
+  /* ── LAYOUT ── */
+  .shell { max-width: 1100px; margin: 0 auto; padding: 0 2rem 6rem; }
+
+  /* ── HEADER ── */
+  header {
+    display: flex; align-items: flex-end; justify-content: space-between;
+    padding: 2.5rem 0 1.5rem;
+    border-bottom: 0.5px solid var(--line2);
+    margin-bottom: 2.5rem;
+  }
+  .header-left {}
+  .header-eyebrow {
+    font-family: var(--mono); font-size: 10px; letter-spacing: 0.12em;
+    text-transform: uppercase; color: var(--text3); margin-bottom: 0.4rem;
+  }
+  h1 {
+    font-family: var(--mono); font-size: 22px; font-weight: 300;
+    color: var(--text); letter-spacing: -0.01em;
+  }
+  h1 span { color: var(--accent); }
+  .header-right { display: flex; gap: 10px; align-items: center; }
+  .btn {
+    font-family: var(--mono); font-size: 11px; letter-spacing: 0.06em;
+    padding: 7px 14px; border-radius: var(--radius);
+    border: 0.5px solid var(--line2); background: transparent;
+    color: var(--text2); cursor: pointer; transition: all 0.15s;
+    text-decoration: none; display: inline-flex; align-items: center; gap: 6px;
+  }
+  .btn:hover { background: var(--bg3); color: var(--text); border-color: var(--line2); }
+  .btn-primary {
+    background: var(--bg3); color: var(--accent);
+    border-color: rgba(200,184,154,0.25);
+  }
+  .btn-primary:hover { background: var(--bg4); border-color: rgba(200,184,154,0.4); }
+  .btn svg { width: 12px; height: 12px; stroke: currentColor; fill: none; stroke-width: 1.5; }
+
+  /* ── DEADLINES STRIP ── */
+  .deadlines {
+    display: flex; gap: 0; margin-bottom: 2.5rem;
+    border: 0.5px solid var(--line); border-radius: var(--radius-lg); overflow: hidden;
+  }
+  .deadline-item {
+    flex: 1; padding: 0.9rem 1.1rem;
+    border-right: 0.5px solid var(--line);
+    transition: background 0.15s;
+  }
+  .deadline-item:last-child { border-right: none; }
+  .deadline-item:hover { background: var(--bg2); }
+  .dl-label { font-family: var(--mono); font-size: 9px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--text3); margin-bottom: 4px; }
+  .dl-name { font-size: 12px; color: var(--text); font-weight: 400; margin-bottom: 3px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .dl-date { font-family: var(--mono); font-size: 10px; color: var(--accent2); }
+  .dl-urgent .dl-date { color: var(--red); }
+
+  /* ── TWO-COL ── */
+  .main-grid { display: grid; grid-template-columns: 1fr 340px; gap: 2rem; align-items: start; }
+
+  /* ── CALENDAR ── */
+  .cal-wrap {}
+  .section-head {
+    display: flex; align-items: center; justify-content: space-between;
+    margin-bottom: 1.25rem;
+  }
+  .section-title {
+    font-family: var(--mono); font-size: 10px; letter-spacing: 0.12em;
+    text-transform: uppercase; color: var(--text3);
+  }
+  .cal-nav { display: flex; align-items: center; gap: 8px; }
+  .cal-nav-btn {
+    width: 26px; height: 26px; border-radius: var(--radius);
+    border: 0.5px solid var(--line); background: transparent;
+    color: var(--text2); cursor: pointer; font-size: 14px;
+    display: flex; align-items: center; justify-content: center;
+    transition: all 0.15s; font-family: var(--sans);
+  }
+  .cal-nav-btn:hover { background: var(--bg3); color: var(--text); }
+  .cal-month { font-family: var(--mono); font-size: 12px; color: var(--text); min-width: 110px; text-align: center; }
+
+  .cal-grid { display: grid; grid-template-columns: repeat(7,1fr); gap: 3px; }
+  .cal-dayname {
+    font-family: var(--mono); font-size: 9px; letter-spacing: 0.08em;
+    color: var(--text3); text-align: center; padding: 0 0 8px; text-transform: uppercase;
+  }
+  .cal-day {
+    border-radius: 5px; min-height: 64px; padding: 6px 5px;
+    border: 0.5px solid transparent; cursor: default;
+    transition: border-color 0.1s; position: relative;
+  }
+  .cal-day:not(.empty):hover { border-color: var(--line2); }
+  .cal-day.today { border-color: var(--accent2) !important; }
+  .cal-num {
+    font-family: var(--mono); font-size: 10px; color: var(--text3);
+    line-height: 1; margin-bottom: 5px;
+  }
+  .cal-day.today .cal-num { color: var(--accent); }
+  .cal-day.heat1 { background: var(--heat1); }
+  .cal-day.heat2 { background: var(--heat2); }
+  .cal-day.heat3 { background: var(--heat3); }
+  .cal-day.heat4 { background: var(--heat4); }
+  .cal-day.heat4 .cal-num { color: rgba(0,0,0,0.6); }
+  .cal-dots { display: flex; flex-wrap: wrap; gap: 2px; }
+  .dot {
+    width: 5px; height: 5px; border-radius: 50%; flex-shrink: 0;
+  }
+  .dot-class { background: var(--blue); }
+  .dot-tutorial { background: var(--purple); }
+  .dot-deadline { background: var(--red); }
+  .dot-event { background: var(--orange); }
+  .dot-task { background: var(--green); }
+  .cal-more { font-family: var(--mono); font-size: 8px; color: var(--text3); margin-top: 2px; }
+
+  .cal-legend {
+    display: flex; flex-wrap: wrap; gap: 12px; margin-top: 1rem;
+  }
+  .legend-item { display: flex; align-items: center; gap: 5px; }
+  .legend-dot { width: 6px; height: 6px; border-radius: 50%; }
+  .legend-label { font-family: var(--mono); font-size: 9px; color: var(--text3); letter-spacing: 0.06em; }
+
+  /* ── SIDEBAR ── */
+  .sidebar {}
+  .sidebar-section { margin-bottom: 2rem; }
+  .sidebar-title {
+    font-family: var(--mono); font-size: 10px; letter-spacing: 0.12em;
+    text-transform: uppercase; color: var(--text3); margin-bottom: 1rem;
+    padding-bottom: 0.6rem; border-bottom: 0.5px solid var(--line);
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  .sidebar-count {
+    background: var(--bg3); border: 0.5px solid var(--line);
+    border-radius: 10px; padding: 1px 7px;
+    font-size: 9px; color: var(--text3);
+  }
+
+  /* ── TASK LIST ── */
+  .task-item {
+    display: flex; align-items: flex-start; gap: 9px;
+    padding: 8px 0; border-bottom: 0.5px solid var(--line);
+    transition: opacity 0.2s;
+  }
+  .task-item:last-child { border-bottom: none; }
+  .task-check {
+    width: 14px; height: 14px; border-radius: 3px;
+    border: 0.5px solid var(--line2); background: transparent;
+    flex-shrink: 0; cursor: pointer; margin-top: 1px;
+    display: flex; align-items: center; justify-content: center;
+    transition: all 0.15s;
+  }
+  .task-check:hover { border-color: var(--accent2); }
+  .task-check.done { background: var(--green-bg); border-color: var(--green); }
+  .task-check.done::after {
+    content: ''; width: 7px; height: 4px;
+    border-left: 1px solid var(--green); border-bottom: 1px solid var(--green);
+    transform: rotate(-45deg) translateY(-1px); display: block;
+  }
+  .task-body { flex: 1; min-width: 0; }
+  .task-name {
+    font-size: 12px; color: var(--text); line-height: 1.4;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+  .task-name.done { color: var(--text3); text-decoration: line-through; }
+  .task-meta { display: flex; align-items: center; gap: 6px; margin-top: 3px; }
+  .task-badge {
+    font-family: var(--mono); font-size: 9px; padding: 1px 6px;
+    border-radius: 3px; letter-spacing: 0.04em;
+  }
+  .badge-high { background: var(--red-bg); color: var(--red); }
+  .badge-med { background: var(--orange-bg); color: var(--orange); }
+  .badge-low { background: var(--green-bg); color: var(--green); }
+  .task-date { font-family: var(--mono); font-size: 9px; color: var(--text3); }
+
+  /* ── TODAY'S SCHEDULE ── */
+  .sched-item {
+    padding: 8px 10px; border-radius: var(--radius);
+    margin-bottom: 5px; border: 0.5px solid var(--line);
+    background: var(--bg2);
+  }
+  .sched-time { font-family: var(--mono); font-size: 9px; color: var(--text3); margin-bottom: 2px; }
+  .sched-name { font-size: 12px; color: var(--text); }
+  .sched-type { display: inline-block; font-family: var(--mono); font-size: 9px; padding: 1px 6px; border-radius: 3px; margin-top: 3px; }
+  .type-class { background: var(--blue-bg); color: var(--blue); }
+  .type-tutorial { background: var(--purple-bg); color: var(--purple); }
+  .type-deadline { background: var(--red-bg); color: var(--red); }
+  .type-event { background: var(--orange-bg); color: var(--orange); }
+  .type-pastoral { background: var(--green-bg); color: var(--green); }
+
+  /* ── MODAL ── */
+  .modal-bg {
+    display: none; position: fixed; inset: 0;
+    background: rgba(0,0,0,0.7); z-index: 200;
+    align-items: center; justify-content: center;
+    backdrop-filter: blur(4px);
+  }
+  .modal-bg.open { display: flex; }
+  .modal {
+    background: var(--bg2); border: 0.5px solid var(--line2);
+    border-radius: var(--radius-lg); padding: 1.5rem;
+    width: 360px; max-width: 95vw;
+    animation: slideUp 0.2s ease;
+  }
+  @keyframes slideUp { from { opacity:0; transform: translateY(12px); } to { opacity:1; transform: translateY(0); } }
+  .modal h3 { font-family: var(--mono); font-size: 12px; font-weight: 400; letter-spacing: 0.06em; color: var(--text); margin-bottom: 1.25rem; text-transform: uppercase; }
+  .field { margin-bottom: 0.9rem; }
+  .field label { display: block; font-family: var(--mono); font-size: 9px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--text3); margin-bottom: 5px; }
+  .field input, .field select {
+    width: 100%; background: var(--bg3); border: 0.5px solid var(--line2);
+    border-radius: var(--radius); color: var(--text); font-family: var(--sans);
+    font-size: 13px; padding: 8px 10px; outline: none;
+    transition: border-color 0.15s;
+  }
+  .field input:focus, .field select:focus { border-color: var(--accent2); }
+  .field select option { background: var(--bg3); }
+  .modal-actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 1.25rem; }
+  .modal-msg { font-family: var(--mono); font-size: 10px; color: var(--red); margin-top: 6px; min-height: 14px; }
+
+  /* ── LOADING / EMPTY ── */
+  .loading { font-family: var(--mono); font-size: 10px; color: var(--text3); padding: 1rem 0; letter-spacing: 0.06em; }
+  .empty { font-family: var(--mono); font-size: 10px; color: var(--text3); padding: 0.75rem 0; }
+
+  /* ── SCROLL ── */
+  ::-webkit-scrollbar { width: 4px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: var(--bg4); border-radius: 2px; }
+
+  /* ── FADE IN ── */
+  .fade-in { animation: fadeIn 0.4s ease both; }
+  @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+  .stagger-1 { animation-delay: 0.05s; }
+  .stagger-2 { animation-delay: 0.1s; }
+  .stagger-3 { animation-delay: 0.15s; }
+  .stagger-4 { animation-delay: 0.2s; }
+
+  @media (max-width: 750px) {
+    .main-grid { grid-template-columns: 1fr; }
+    .deadlines { flex-direction: column; }
+    .deadline-item { border-right: none; border-bottom: 0.5px solid var(--line); }
+    .deadline-item:last-child { border-bottom: none; }
+    header { flex-direction: column; align-items: flex-start; gap: 1rem; }
+  }
+</style>
+</head>
+<body>
+<div id="app-shell">
+<div class="shell">
+
+  <header class="fade-in">
+    <div class="header-left">
+      <div class="header-eyebrow">MA Design for Art Direction &nbsp;·&nbsp; LCC &nbsp;·&nbsp; UAL</div>
+      <h1>Command <span>Centre</span></h1>
+    </div>
+    <div class="header-right">
+      <button class="btn" onclick="loadAll()">
+        <svg viewBox="0 0 16 16"><path d="M2 8a6 6 0 1 1 1.5 4"/><polyline points="2,12 2,8 6,8"/></svg>
+        Refresh
+      </button>
+      <button class="btn btn-primary" onclick="openModal()">
+        <svg viewBox="0 0 16 16"><line x1="8" y1="2" x2="8" y2="14"/><line x1="2" y1="8" x2="14" y2="8"/></svg>
+        New task
+      </button>
+    </div>
+  </header>
+
+  <div class="deadlines fade-in stagger-1" id="deadlines-strip">
+    <div class="deadline-item dl-urgent">
+      <div class="dl-label">Next deadline</div>
+      <div class="dl-name">Unit 04 Portfolio</div>
+      <div class="dl-date">4 Jun 2026</div>
+    </div>
+    <div class="deadline-item">
+      <div class="dl-label">Thesis draft</div>
+      <div class="dl-name">Written component</div>
+      <div class="dl-date">11 Sep 2026</div>
+    </div>
+    <div class="deadline-item">
+      <div class="dl-label">Portfolio samples</div>
+      <div class="dl-name">Unit 05 selection</div>
+      <div class="dl-date">12 Oct 2026</div>
+    </div>
+    <div class="deadline-item">
+      <div class="dl-label">Final submission</div>
+      <div class="dl-name">Unit 05 FMP</div>
+      <div class="dl-date">5 Nov 2026</div>
+    </div>
+  </div>
+
+  <div class="main-grid">
+
+    <!-- CALENDAR -->
+    <div class="cal-wrap fade-in stagger-2">
+      <div class="section-head">
+        <span class="section-title">Schedule</span>
+        <div class="cal-nav">
+          <button class="cal-nav-btn" onclick="changeMonth(-1)">&#8249;</button>
+          <span class="cal-month" id="cal-month-label"></span>
+          <button class="cal-nav-btn" onclick="changeMonth(1)">&#8250;</button>
+        </div>
+      </div>
+      <div class="cal-grid" id="cal-daynames"></div>
+      <div class="cal-grid" id="cal-grid" style="margin-top:3px"></div>
+      <div class="cal-legend">
+        <div class="legend-item"><div class="legend-dot" style="background:var(--blue)"></div><span class="legend-label">Class</span></div>
+        <div class="legend-item"><div class="legend-dot" style="background:var(--purple)"></div><span class="legend-label">Tutorial</span></div>
+        <div class="legend-item"><div class="legend-dot" style="background:var(--red)"></div><span class="legend-label">Deadline</span></div>
+        <div class="legend-item"><div class="legend-dot" style="background:var(--orange)"></div><span class="legend-label">Event</span></div>
+        <div class="legend-item"><div class="legend-dot" style="background:var(--green)"></div><span class="legend-label">Task due</span></div>
+        <div class="legend-item" style="margin-left:auto">
+          <div style="width:30px;height:8px;border-radius:2px;background:linear-gradient(to right,var(--heat1),var(--heat4));margin-right:5px"></div>
+          <span class="legend-label">Density</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- SIDEBAR -->
+    <div class="sidebar fade-in stagger-3">
+
+      <div class="sidebar-section">
+        <div class="sidebar-title">
+          Today
+          <span id="today-label" style="font-family:var(--mono);font-size:9px;color:var(--text3);font-weight:400;letter-spacing:0.06em;text-transform:none"></span>
+        </div>
+        <div id="today-list"><div class="empty">Nothing scheduled today.</div></div>
+      </div>
+
+      <div class="sidebar-section">
+        <div class="sidebar-title">
+          Tasks
+          <span class="sidebar-count" id="task-count">—</span>
+        </div>
+        <div id="task-list"><div class="loading">Loading…</div></div>
+      </div>
+
+    </div>
+  </div>
+
+</div>
+
+</div><!-- /app-shell -->
+
+<!-- ADD TASK MODAL -->
+<div class="modal-bg" id="modal-bg" onclick="if(event.target===this)closeModal()">
+  <div class="modal">
+    <h3>New task</h3>
+    <div class="field">
+      <label>Task name</label>
+      <input type="text" id="m-name" placeholder="What needs to be done?">
+    </div>
+    <div class="field">
+      <label>Priority</label>
+      <select id="m-priority">
+        <option value="🔴 High">High</option>
+        <option value="🟡 Medium" selected>Medium</option>
+        <option value="🟢 Low">Low</option>
+      </select>
+    </div>
+    <div class="field">
+      <label>Due date</label>
+      <input type="date" id="m-date">
+    </div>
+    <div class="field">
+      <label>Unit</label>
+      <select id="m-unit">
+        <option value="Unit 04: SP">Unit 04: SP</option>
+        <option value="Unit 05: FMP">Unit 05: FMP</option>
+        <option value="Personal">Personal</option>
+        <option value="Admin">Admin</option>
+      </select>
+    </div>
+    <div class="field">
+      <label>Type</label>
+      <select id="m-type">
+        <option value="Assignment">Assignment</option>
+        <option value="Research">Research</option>
+        <option value="Reading">Reading</option>
+        <option value="Personal">Personal</option>
+        <option value="Admin">Admin</option>
+      </select>
+    </div>
+    <div class="modal-msg" id="modal-msg"></div>
+    <div class="modal-actions">
+      <button class="btn" onclick="closeModal()">Cancel</button>
+      <button class="btn btn-primary" id="save-btn" onclick="saveTask()">Save to Notion</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ── CONFIG ──────────────────────────────────────────────────────────────────
+// Token is stored in your browser locally — never in the file itself
+let NOTION_TOKEN = localStorage.getItem('notion_token') || '';
+
+const SCHEDULE_DS = 'collection://1c14bde2-58c0-4e95-afcc-203fa264a583';
+const TASKS_DS    = 'collection://8b25d08d-8a0e-46c9-a5d1-314aa1d43553';
+const TASKS_DB_ID = '5843655d035240d5958ae45633415fa7';
+
+// ── STATE ───────────────────────────────────────────────────────────────────
+let scheduleItems = [];
+let taskItems = [];
+let curYear  = new Date().getFullYear();
+let curMonth = new Date().getMonth();
+const NOW = new Date();
+
+const MONTHS = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+const DAYS_SHORT = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
+
+// ── NOTION API ───────────────────────────────────────────────────────────────
+async function notionQuery(dbId, filter) {
+  const body = { page_size: 100 };
+  if (filter) body.filter = filter;
+  const res = await fetch(`https://api.notion.com/v1/databases/${dbId}/query`, {
+    method: 'POST',
+    headers: {
+      'Authorization': `Bearer ${NOTION_TOKEN}`,
+      'Content-Type': 'application/json',
+      'Notion-Version': '2022-06-28'
+    },
+    body: JSON.stringify(body)
+  });
+  if (!res.ok) throw new Error(`Notion API error: ${res.status}`);
+  const data = await res.json();
+  return data.results || [];
+}
+
+async function notionCreate(dbId, props) {
+  const res = await fetch('https://api.notion.com/v1/pages', {
+    method: 'POST',
+    headers: {
+      'Authorization': `Bearer ${NOTION_TOKEN}`,
+      'Content-Type': 'application/json',
+      'Notion-Version': '2022-06-28'
+    },
+    body: JSON.stringify({ parent: { database_id: dbId }, properties: props })
+  });
+  if (!res.ok) throw new Error(`Create failed: ${res.status}`);
+  return await res.json();
+}
+
+async function notionPatch(pageId, props) {
+  await fetch(`https://api.notion.com/v1/pages/${pageId}`, {
+    method: 'PATCH',
+    headers: {
+      'Authorization': `Bearer ${NOTION_TOKEN}`,
+      'Content-Type': 'application/json',
+      'Notion-Version': '2022-06-28'
+    },
+    body: JSON.stringify({ properties: props })
+  });
+}
+
+// ── PARSE ────────────────────────────────────────────────────────────────────
+function parseSchedule(pages) {
+  return pages.map(p => {
+    const props = p.properties;
+    return {
+      id: p.id,
+      title: props.Session?.title?.[0]?.plain_text || 'Untitled',
+      date:  props.Date?.date?.start || null,
+      time:  props.Time?.rich_text?.[0]?.plain_text || '',
+      type:  props.Type?.select?.name || 'Class',
+      location: props.Location?.rich_text?.[0]?.plain_text || ''
+    };
+  });
+}
+
+function parseTasks(pages) {
+  return pages.map(p => {
+    const props = p.properties;
+    return {
+      id:       p.id,
+      title:    props.Task?.title?.[0]?.plain_text || 'Untitled',
+      status:   props.Status?.select?.name || 'Not Started',
+      priority: props.Priority?.select?.name || '🟢 Low',
+      date:     props['Due Date']?.date?.start || null,
+      unit:     props.Unit?.select?.name || '',
+      type:     props.Type?.select?.name || ''
+    };
+  });
+}
+
+// ── CALENDAR ─────────────────────────────────────────────────────────────────
+function renderCalendar() {
+  document.getElementById('cal-month-label').textContent =
+    `${MONTHS[curMonth]} ${curYear}`;
+
+  // Day name headers
+  document.getElementById('cal-daynames').innerHTML =
+    DAYS_SHORT.map(d => `<div class="cal-dayname">${d}</div>`).join('');
+
+  // Build day → items map
+  const dayMap = {};
+  const addToDay = (dateStr, item) => {
+    if (!dateStr) return;
+    const [y, m, d] = dateStr.slice(0,10).split('-').map(Number);
+    if (y === curYear && m - 1 === curMonth) {
+      if (!dayMap[d]) dayMap[d] = [];
+      dayMap[d].push(item);
+    }
+  };
+  scheduleItems.forEach(s => addToDay(s.date, { type: s.type, title: s.title }));
+  taskItems.filter(t => t.status !== 'Done').forEach(t =>
+    addToDay(t.date, { type: 'task', title: t.title }));
+
+  const firstDow = new Date(curYear, curMonth, 1).getDay(); // 0=Sun
+  const offset   = firstDow === 0 ? 6 : firstDow - 1;
+  const daysInMonth = new Date(curYear, curMonth + 1, 0).getDate();
+
+  const isToday = (d) =>
+    d === NOW.getDate() && curMonth === NOW.getMonth() && curYear === NOW.getFullYear();
+
+  let html = '';
+  for (let i = 0; i < offset; i++) html += `<div class="cal-day empty"></div>`;
+  for (let d = 1; d <= daysInMonth; d++) {
+    const items = dayMap[d] || [];
+    const n = items.length;
+    const heatClass = n === 0 ? '' : n === 1 ? 'heat1' : n <= 3 ? 'heat2' : n <= 6 ? 'heat3' : 'heat4';
+    const todayCls  = isToday(d) ? ' today' : '';
+    const maxDots = 5;
+    const dots = items.slice(0, maxDots).map(it => {
+      const c = it.type === 'Class' ? 'dot-class'
+              : it.type === 'Tutorial' ? 'dot-tutorial'
+              : it.type === 'Deadline' ? 'dot-deadline'
+              : it.type === 'Event' ? 'dot-event'
+              : 'dot-task';
+      return `<div class="dot ${c}" title="${it.title}"></div>`;
+    }).join('');
+    const more = n > maxDots ? `<div class="cal-more">+${n - maxDots}</div>` : '';
+    html += `<div class="cal-day ${heatClass}${todayCls}">
+      <div class="cal-num">${d}</div>
+      <div class="cal-dots">${dots}</div>${more}
+    </div>`;
+  }
+  document.getElementById('cal-grid').innerHTML = html;
+}
+
+// ── TODAY ────────────────────────────────────────────────────────────────────
+function renderToday() {
+  const todayStr = NOW.toISOString().slice(0,10);
+  const label = NOW.toLocaleDateString('en-GB', { weekday:'long', day:'numeric', month:'short' });
+  document.getElementById('today-label').textContent = label;
+
+  const todaySched = scheduleItems.filter(s => s.date && s.date.startsWith(todayStr));
+  const el = document.getElementById('today-list');
+  if (!todaySched.length) {
+    el.innerHTML = `<div class="empty">Nothing scheduled today.</div>`;
+    return;
+  }
+  el.innerHTML = todaySched.map(s => {
+    const tc = s.type === 'Class' ? 'type-class'
+             : s.type === 'Tutorial' ? 'type-tutorial'
+             : s.type === 'Deadline' ? 'type-deadline'
+             : s.type === 'Event' ? 'type-event'
+             : 'type-pastoral';
+    return `<div class="sched-item">
+      ${s.time ? `<div class="sched-time">${s.time}</div>` : ''}
+      <div class="sched-name">${s.title}</div>
+      <span class="sched-type ${tc}">${s.type}</span>
+    </div>`;
+  }).join('');
+}
+
+// ── TASKS ────────────────────────────────────────────────────────────────────
+function renderTasks() {
+  const priOrder = { '🔴 High': 0, '🟡 Medium': 1, '🟢 Low': 2 };
+  const active = taskItems
+    .filter(t => t.status !== 'Done')
+    .sort((a, b) => {
+      const pd = (priOrder[a.priority] ?? 2) - (priOrder[b.priority] ?? 2);
+      if (pd !== 0) return pd;
+      if (a.date && b.date) return a.date.localeCompare(b.date);
+      return 0;
+    });
+
+  document.getElementById('task-count').textContent = active.length;
+
+  const el = document.getElementById('task-list');
+  if (!active.length) {
+    el.innerHTML = `<div class="empty">No active tasks.</div>`;
+    return;
+  }
+  el.innerHTML = active.slice(0, 15).map(t => {
+    const bc = t.priority?.includes('High') ? 'badge-high'
+             : t.priority?.includes('Medium') ? 'badge-med' : 'badge-low';
+    const bl = t.priority?.replace(/[🔴🟡🟢]\s*/,'') || '';
+    const ds = t.date
+      ? new Date(t.date + 'T12:00:00').toLocaleDateString('en-GB', { day:'numeric', month:'short' })
+      : '';
+    return `<div class="task-item">
+      <div class="task-check" onclick="toggleTask('${t.id}', this)" data-status="${t.status}"></div>
+      <div class="task-body">
+        <div class="task-name">${t.title}</div>
+        <div class="task-meta">
+          ${bl ? `<span class="task-badge ${bc}">${bl}</span>` : ''}
+          ${ds ? `<span class="task-date">${ds}</span>` : ''}
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+// ── TOGGLE TASK ───────────────────────────────────────────────────────────────
+async function toggleTask(id, el) {
+  const isDone = el.classList.contains('done');
+  const newStatus = isDone ? 'Not Started' : 'Done';
+  el.classList.toggle('done', !isDone);
+  const nameEl = el.parentElement.querySelector('.task-name');
+  if (nameEl) nameEl.classList.toggle('done', !isDone);
+  const task = taskItems.find(t => t.id === id);
+  if (task) task.status = newStatus;
+  setTimeout(renderTasks, 400);
+  try {
+    await notionPatch(id, { Status: { select: { name: newStatus } } });
+  } catch(e) { console.warn('Toggle failed', e); }
+}
+
+// ── MONTH NAV ─────────────────────────────────────────────────────────────────
+function changeMonth(d) {
+  curMonth += d;
+  if (curMonth > 11) { curMonth = 0; curYear++; }
+  if (curMonth < 0)  { curMonth = 11; curYear--; }
+  renderCalendar();
+}
+
+// ── MODAL ─────────────────────────────────────────────────────────────────────
+function openModal() {
+  document.getElementById('m-date').value = NOW.toISOString().slice(0,10);
+  document.getElementById('m-name').value = '';
+  document.getElementById('modal-msg').textContent = '';
+  document.getElementById('save-btn').disabled = false;
+  document.getElementById('save-btn').textContent = 'Save to Notion';
+  document.getElementById('modal-bg').classList.add('open');
+  setTimeout(() => document.getElementById('m-name').focus(), 100);
+}
+function closeModal() {
+  document.getElementById('modal-bg').classList.remove('open');
+}
+document.addEventListener('keydown', e => { if (e.key === 'Escape') closeModal(); });
+
+async function saveTask() {
+  const name = document.getElementById('m-name').value.trim();
+  if (!name) { document.getElementById('modal-msg').textContent = 'Enter a task name.'; return; }
+  const btn = document.getElementById('save-btn');
+  btn.disabled = true; btn.textContent = 'Saving…';
+
+  const priority = document.getElementById('m-priority').value;
+  const date     = document.getElementById('m-date').value;
+  const unit     = document.getElementById('m-unit').value;
+  const type     = document.getElementById('m-type').value;
+
+  const props = {
+    Task:     { title: [{ text: { content: name } }] },
+    Priority: { select: { name: priority } },
+    Status:   { select: { name: 'Not Started' } },
+    Unit:     { select: { name: unit } },
+    Type:     { select: { name: type } }
+  };
+  if (date) props['Due Date'] = { date: { start: date } };
+
+  try {
+    const page = await notionCreate(TASKS_DB_ID, props);
+    taskItems.unshift({
+      id: page.id, title: name, status: 'Not Started',
+      priority, date, unit, type
+    });
+    renderTasks();
+    renderCalendar();
+    closeModal();
+  } catch(e) {
+    document.getElementById('modal-msg').textContent = 'Error — check your token or CORS proxy.';
+    console.error(e);
+  }
+  btn.disabled = false; btn.textContent = 'Save to Notion';
+}
+
+// ── LOAD ──────────────────────────────────────────────────────────────────────
+async function loadAll() {
+  renderCalendar();
+  document.getElementById('task-list').innerHTML = '<div class="loading">Connecting to Notion…</div>';
+
+  if (!NOTION_TOKEN) {
+    showTokenSetup();
+    return;
+  }
+
+  try {
+    const [schedPages, taskPages] = await Promise.all([
+      notionQuery(SCHEDULE_DS.replace('collection://','').replaceAll('-','').slice(0,32), null).catch(() => []),
+      notionQuery(TASKS_DB_ID, null)
+    ]);
+    scheduleItems = parseSchedule(schedPages);
+    taskItems     = parseTasks(taskPages);
+  } catch(e) {
+    console.warn('Load error', e);
+    document.getElementById('task-list').innerHTML =
+      `<div class="empty" style="color:var(--red)">Could not reach Notion. Check CORS — you may need to open this file via a local server or add a proxy.</div>`;
+  }
+
+  renderCalendar();
+  renderToday();
+  renderTasks();
+}
+
+// ── TOKEN SETUP ───────────────────────────────────────────────────────────────
+function showTokenSetup() {
+  document.getElementById('app-shell').innerHTML = `
+    <div style="min-height:100vh;display:flex;align-items:center;justify-content:center;padding:2rem">
+      <div style="max-width:420px;width:100%">
+        <div style="font-family:var(--mono);font-size:10px;letter-spacing:0.12em;text-transform:uppercase;color:var(--text3);margin-bottom:0.75rem">Setup</div>
+        <h2 style="font-family:var(--mono);font-size:20px;font-weight:300;color:var(--text);margin-bottom:0.5rem">Connect to Notion</h2>
+        <p style="font-size:13px;color:var(--text2);line-height:1.6;margin-bottom:2rem">Paste your Notion integration token below. It will be saved in your browser — it never leaves your device and won't be uploaded anywhere.</p>
+        <div style="margin-bottom:1rem">
+          <div style="font-family:var(--mono);font-size:9px;letter-spacing:0.1em;text-transform:uppercase;color:var(--text3);margin-bottom:6px">Notion token</div>
+          <input id="token-input" type="password" placeholder="secret_..." style="width:100%;background:var(--bg3);border:0.5px solid var(--line2);border-radius:var(--radius);color:var(--text);font-family:var(--mono);font-size:12px;padding:10px 12px;outline:none">
+        </div>
+        <div style="font-family:var(--mono);font-size:10px;color:var(--text3);margin-bottom:1.5rem;line-height:1.6">
+          Get your token at <span style="color:var(--accent)">notion.so/profile/integrations</span> → New integration → copy the secret_ token
+        </div>
+        <button onclick="saveToken()" style="width:100%;background:var(--bg3);border:0.5px solid rgba(200,184,154,0.25);border-radius:var(--radius);color:var(--accent);font-family:var(--mono);font-size:11px;letter-spacing:0.06em;padding:10px;cursor:pointer">
+          Connect →
+        </button>
+        <div id="token-err" style="font-family:var(--mono);font-size:10px;color:var(--red);margin-top:8px;min-height:14px"></div>
+      </div>
+    </div>`;
+}
+
+function saveToken() {
+  const val = document.getElementById('token-input').value.trim();
+  if (!val.startsWith('secret_')) {
+    document.getElementById('token-err').textContent = 'Token should start with secret_';
+    return;
+  }
+  localStorage.setItem('notion_token', val);
+  NOTION_TOKEN = val;
+  document.getElementById('app-shell').innerHTML = originalShell;
+  loadAll();
+}
+
+const originalShell = document.getElementById('app-shell')?.innerHTML || '';
+
+loadAll();
+</body>
+</html>
